@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --ground: #0e1110;
+  --surface: #161a19;
+  --surface-elevated: #1e2422;
+  --border: #2a322f;
+  --border-subtle: #1c2220;
+  --ink: #f4f3ef;
+  --ink-muted: #9aa19d;
+  --ink-faint: #636b67;
+  --accent: #d97706;
+  --accent-light: #f59e0b;
+  --accent-hover: #b45309;
+  --accent-ink: #0e1110;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+}
+
+html {
+  background-color: var(--ground);
+  color: var(--ink);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  background-color: var(--ground);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular figures for numbers, measurements and roll statistics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Enforce font-size >= 16px on inputs to prevent iOS auto-zoom */
+input, select, textarea, button {
+  font-size: 16px;
+}
+
+/* Custom scrollbar for modern browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+}
+
+/* Focus visibility for accessibility (Vercel Guidelines compliant) */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Media reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

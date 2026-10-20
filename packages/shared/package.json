@@ -1,0 +1,28 @@
+{
+  "name": "@luminadia/shared",
+  "version": "1.0.0",
+  "description": "Luminadia shared types, DTOs and material calculation engine",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "keywords": [
+    "solar-film",
+    "calculator",
+    "luminadia"
+  ],
+  "author": "Luminadia Team",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}

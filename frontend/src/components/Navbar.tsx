@@ -97,12 +97,22 @@ export default function Navbar() {
     pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
 
   return (
-    <header
-      ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-50 bg-[#1E242B]"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+    <>
+      {/* Atmospheric backdrop behind header & drawer */}
+      <div
+        className="mobile-backdrop lg:hidden"
+        data-open={mobileMenuOpen}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      <header
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-50 bg-[#1E242B]"
+      >
+        <div className="relative z-20 bg-[#1E242B]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
           {/* Logo Oficial LuminADia */}
           <Link
             href="/"
@@ -187,42 +197,32 @@ export default function Navbar() {
               ref={toggleButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="mobile-nav-toggle relative w-10 h-10 rounded-lg flex flex-col items-center justify-center gap-1.5 text-[#B3B6B9] hover:text-white hover:bg-[#283039]/80 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+              className={`mobile-nav-toggle relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer ${
+                mobileMenuOpen
+                  ? 'bg-[#283039] text-white'
+                  : 'bg-[#283039]/80 text-[#E5E7EB] hover:bg-[#323B46] hover:text-white'
+              }`}
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
             >
-              <span
-                aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-[transform,background-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
-                  mobileMenuOpen ? 'translate-y-[8px] rotate-45 bg-white' : 'bg-current'
-                }`}
-              />
-              <span
-                aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-[transform,opacity] duration-150 ease-out origin-center ${
-                  mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 bg-current'
-                }`}
-              />
-              <span
-                aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-[transform,background-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
-                  mobileMenuOpen ? '-translate-y-[8px] -rotate-45 bg-white' : 'bg-current'
-                }`}
-              />
+              <span className="hamburger-box" data-open={mobileMenuOpen} aria-hidden="true">
+                <span className="hamburger-line hamburger-line--top" />
+                <span className="hamburger-line hamburger-line--mid" />
+                <span className="hamburger-line hamburger-line--bot" />
+              </span>
             </button>
           </div>
         </div>
       </div>
+        </div>
 
-      {/* Mobile Drawer with GPU-composited unfolding & snappy staggered item reveal */}
+      {/* Mobile Drawer with GPU slide-out from behind the navbar */}
       <div
         id="mobile-navigation"
         data-open={mobileMenuOpen}
         inert={!mobileMenuOpen}
-        className={`mobile-drawer lg:hidden absolute top-full inset-x-0 border-b border-white/10 bg-[#1E242B]/[0.97] backdrop-blur-md shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)] ${
-          mobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
-        }`}
+        className="mobile-drawer lg:hidden"
       >
         <div className="px-4 sm:px-6 py-5 space-y-4 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
           <nav className="flex flex-col space-y-1 text-sm" aria-label="Navegación móvil">
@@ -293,5 +293,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }

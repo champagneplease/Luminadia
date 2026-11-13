@@ -110,6 +110,10 @@ footer {
   overflow-x: clip;
 }
 
+header {
+  overflow-y: visible;
+}
+
 h1 {
   color: inherit;
   letter-spacing: -0.035em;
@@ -347,39 +351,130 @@ body.has-visual-editor-bar header.fixed:not([data-editor-header="true"]) {
 body.has-visual-editor-bar main#main-content {
   padding-top: 128px !important;
 }
+body.has-visual-editor-bar .mobile-backdrop {
+  top: 128px !important;
+}
 
 .mobile-nav-toggle:hover:not(:disabled) {
   transform: none;
 }
 
-.mobile-drawer {
-  clip-path: inset(0 0 100% 0);
-  transform: translate3d(0, -10px, 0);
-  opacity: 0;
-  will-change: clip-path, transform, opacity;
+/* Precision 3-bar -> X hamburger morph (single unified transform per bar) */
+.hamburger-box {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 14px;
+}
+
+.hamburger-line {
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.hamburger-line--top {
+  top: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  transition: transform 0.34s var(--ease-luxury);
+}
+
+.hamburger-line--mid {
+  top: 6px;
+  transform: scaleX(1);
+  opacity: 1;
   transition:
-    clip-path 0.2s var(--ease-smooth),
     transform 0.2s var(--ease-smooth),
     opacity 0.16s ease-out;
 }
 
+.hamburger-line--bot {
+  top: 12px;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  transition: transform 0.34s var(--ease-luxury);
+}
+
+.hamburger-box[data-open="true"] .hamburger-line--top {
+  transform: translate3d(0, 6px, 0) rotate(45deg);
+}
+
+.hamburger-box[data-open="true"] .hamburger-line--mid {
+  transform: scaleX(0);
+  opacity: 0;
+}
+
+.hamburger-box[data-open="true"] .hamburger-line--bot {
+  transform: translate3d(0, -6px, 0) rotate(-45deg);
+}
+
+/* Mobile backdrop scrim & GPU slide-out drawer */
+.mobile-backdrop {
+  position: fixed;
+  inset: 5rem 0 0 0;
+  z-index: 40;
+  background-color: rgba(13, 17, 22, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: opacity;
+  transition:
+    opacity 0.28s var(--ease-smooth),
+    visibility 0s linear 0.28s;
+}
+
+.mobile-backdrop[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.32s var(--ease-luxury),
+    visibility 0s linear 0s;
+}
+
+.mobile-drawer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: #1E242B;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  transform: translate3d(0, -100%, 0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition:
+    transform 0.28s var(--ease-smooth),
+    opacity 0.22s ease-out,
+    visibility 0s linear 0.28s;
+}
+
 .mobile-drawer[data-open="true"] {
-  clip-path: inset(0 0 0% 0);
   transform: translate3d(0, 0, 0);
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
   transition:
-    clip-path 0.28s var(--ease-luxury),
-    transform 0.28s var(--ease-luxury),
-    opacity 0.2s ease-out;
+    transform 0.38s var(--ease-luxury),
+    opacity 0.24s ease-out,
+    visibility 0s linear 0s;
 }
 
 .mobile-drawer-item {
   opacity: 0;
-  transform: translate3d(0, -6px, 0);
+  transform: translate3d(0, -8px, 0);
   will-change: transform, opacity;
   transition:
-    transform 0.14s ease-out,
-    opacity 0.12s ease-out;
+    transform 0.18s ease-out,
+    opacity 0.16s ease-out;
   transition-delay: 0ms;
 }
 
@@ -387,20 +482,24 @@ body.has-visual-editor-bar main#main-content {
   opacity: 1;
   transform: translate3d(0, 0, 0);
   transition:
-    transform 0.26s var(--ease-luxury),
-    opacity 0.22s ease-out;
+    transform 0.34s var(--ease-luxury),
+    opacity 0.26s ease-out;
   transition-delay: var(--stagger-delay, 0ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hamburger-line,
+  .mobile-backdrop,
   .mobile-drawer,
-  .mobile-drawer[data-open="true"],
   .mobile-drawer-item,
   .mobile-drawer[data-open="true"] .mobile-drawer-item {
-    clip-path: none !important;
-    transform: none !important;
-    transition-duration: 0.1s !important;
+    transition-duration: 0.12s !important;
     transition-delay: 0ms !important;
+  }
+
+  .mobile-drawer,
+  .mobile-drawer-item {
+    transform: none !important;
   }
 }
 

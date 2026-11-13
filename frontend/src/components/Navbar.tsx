@@ -253,38 +253,35 @@ export default function Navbar() {
 
           <div
             style={{ '--stagger-delay': `${navLinks.length * 22}ms` } as React.CSSProperties}
-            className="mobile-drawer-item pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#B3B6B9]"
+            className="mobile-drawer-item pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-[#B3B6B9]"
           >
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
               <a
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white flex items-center gap-1.5 transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#B3B6B9] hover:text-white hover:bg-[#283039]/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label="Instagram de LuminADia"
               >
-                <InstagramIcon className="w-3.5 h-3.5" />
-                <span>Instagram</span>
+                <InstagramIcon className="w-4 h-4" />
               </a>
               <a
                 href={`https://wa.me/${cleanPhone}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white flex items-center gap-1.5 transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#B3B6B9] hover:text-white hover:bg-[#283039]/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label="WhatsApp de LuminADia"
               >
-                <WhatsAppIcon className="w-3.5 h-3.5" variant="monochrome" />
-                <span>WhatsApp</span>
+                <WhatsAppIcon className="w-4 h-4" variant="monochrome" />
               </a>
               <a
                 href="https://www.google.com/maps/search/?api=1&query=Padre+Zanello+341,+San+Fernando+del+Valle+de+Catamarca"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white flex items-center gap-1.5 transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#B3B6B9] hover:text-white hover:bg-[#283039]/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label="Ubicación de LuminADia en Catamarca"
               >
-                <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Ubicación</span>
+                <MapPin className="w-4 h-4" aria-hidden="true" />
               </a>
             </div>
 

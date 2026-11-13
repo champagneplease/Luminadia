@@ -142,7 +142,7 @@ export default function HomePage() {
       )}
 
       {/* 1. HERO SECTION: Monumental architectural headline with authentic spatial clarity */}
-      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-0 sm:min-h-[92vh] flex items-start sm:items-center justify-center overflow-hidden">
         {/* Real Architectural & Automotive Glass Background with crisp scrim */}
         <VisualEditableImage
           imageKey="hero"
@@ -157,19 +157,8 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-white/80 backdrop-none pointer-events-none" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-36 w-full">
-          <div className="max-w-4xl space-y-8">
-            {/* Ubicación y autoridad territorial con enlace directo a Google Maps */}
-            <LocationLink
-              showPin={true}
-              showExternalIcon={true}
-              className="animate-hero-location inline-flex items-center gap-2 text-sm font-semibold text-[#1E242B] hover:text-[#2E3742]"
-            >
-              <VisualEditableText contentKey="heroBadge" label="Insignia de Ubicación (Hero)">
-                {texts.heroBadge || 'San Fernando del Valle de Catamarca · Taller y Relevamiento en Obra'}
-              </VisualEditableText>
-            </LocationLink>
-
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:py-24 lg:py-36 w-full">
+          <div className="max-w-4xl space-y-6 sm:space-y-8">
             {/* Titular monumental en dos líneas seguras con escala arquitectónica */}
             <h1 className="animate-hero-title text-5xl sm:text-7xl lg:text-8xl font-black tracking-[-0.035em] text-[#1E242B] leading-[1.02] text-balance">
               <VisualEditableText

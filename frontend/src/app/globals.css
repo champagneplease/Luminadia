@@ -347,4 +347,174 @@ body.has-visual-editor-bar header.fixed:not([data-editor-header="true"]) {
 body.has-visual-editor-bar main#main-content {
   padding-top: 128px !important;
 }
+body.has-visual-editor-bar #mobile-navigation {
+  top: 128px !important;
+}
+
+/* Mobile Hamburger & Architectural Curtain Navigation */
+.mobile-nav-toggle:hover:not(:disabled) {
+  transform: none;
+}
+
+.mobile-nav-toggle:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.mobile-nav-bar {
+  transition:
+    transform 0.42s var(--ease-luxury),
+    opacity 0.18s ease,
+    width 0.3s var(--ease-luxury);
+  will-change: transform, opacity;
+}
+
+.mobile-nav-overlay {
+  overscroll-behavior: contain;
+}
+
+.mobile-nav-backdrop {
+  opacity: 0;
+  touch-action: none;
+  will-change: opacity;
+}
+
+.mobile-nav-overlay[data-state="open"] .mobile-nav-backdrop {
+  opacity: 1;
+  transition: opacity 0.38s var(--ease-smooth);
+}
+
+.mobile-nav-overlay[data-state="closing"] .mobile-nav-backdrop {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.mobile-nav-sheet {
+  overscroll-behavior: contain;
+  will-change: clip-path, transform, opacity;
+}
+
+.mobile-nav-overlay[data-state="opening"] .mobile-nav-sheet,
+.mobile-nav-overlay[data-state="closed"] .mobile-nav-sheet {
+  opacity: 0.96;
+  clip-path: inset(0 0 100% 0);
+  transform: translate3d(0, -14px, 0);
+}
+
+.mobile-nav-overlay[data-state="open"] .mobile-nav-sheet {
+  opacity: 1;
+  clip-path: inset(0 0 0% 0);
+  transform: translate3d(0, 0, 0);
+  transition:
+    clip-path 0.54s var(--ease-luxury),
+    transform 0.54s var(--ease-luxury),
+    opacity 0.28s var(--ease-smooth);
+}
+
+.mobile-nav-overlay[data-state="closing"] .mobile-nav-sheet {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  transform: translate3d(0, -10px, 0);
+  transition:
+    clip-path 0.34s var(--ease-smooth),
+    transform 0.34s var(--ease-smooth),
+    opacity 0.24s ease-out 0.06s;
+}
+
+.mobile-nav-seam {
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.mobile-nav-overlay[data-state="open"] .mobile-nav-seam {
+  transform: scaleX(1);
+  opacity: 1;
+  transition:
+    transform 0.62s var(--ease-luxury) 0.06s,
+    opacity 0.35s ease-out 0.06s;
+}
+
+.mobile-nav-overlay[data-state="closing"] .mobile-nav-seam {
+  transform: scaleX(0);
+  transform-origin: right center;
+  opacity: 0;
+  transition:
+    transform 0.24s var(--ease-smooth),
+    opacity 0.2s ease-out;
+}
+
+.mobile-nav-item {
+  will-change: transform, opacity;
+}
+
+.mobile-nav-overlay[data-state="opening"] .mobile-nav-item,
+.mobile-nav-overlay[data-state="closed"] .mobile-nav-item {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+
+.mobile-nav-overlay[data-state="open"] .mobile-nav-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 0.44s var(--ease-luxury),
+    transform 0.52s var(--ease-luxury);
+  transition-delay: calc(var(--item-index, 0) * 36ms + 70ms);
+}
+
+.mobile-nav-overlay[data-state="closing"] .mobile-nav-item {
+  opacity: 0;
+  transform: translate3d(0, -8px, 0);
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.22s var(--ease-smooth);
+  transition-delay: 0ms;
+}
+
+.mobile-nav-active-bar {
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.mobile-nav-overlay[data-state="open"] .mobile-nav-active-bar {
+  transform: scaleX(1);
+  transition: transform 0.56s var(--ease-luxury) 0.2s;
+}
+
+.mobile-nav-overlay[data-state="closing"] .mobile-nav-active-bar {
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.2s var(--ease-smooth);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-bar,
+  .mobile-nav-backdrop,
+  .mobile-nav-sheet,
+  .mobile-nav-seam,
+  .mobile-nav-item,
+  .mobile-nav-active-bar {
+    transition-duration: 0.12s !important;
+    transition-delay: 0ms !important;
+  }
+
+  .mobile-nav-overlay[data-state="opening"] .mobile-nav-sheet,
+  .mobile-nav-overlay[data-state="closed"] .mobile-nav-sheet,
+  .mobile-nav-overlay[data-state="closing"] .mobile-nav-sheet,
+  .mobile-nav-overlay[data-state="opening"] .mobile-nav-item,
+  .mobile-nav-overlay[data-state="closed"] .mobile-nav-item,
+  .mobile-nav-overlay[data-state="closing"] .mobile-nav-item,
+  .mobile-nav-active-bar {
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .mobile-nav-overlay[data-state="opening"] .mobile-nav-sheet,
+  .mobile-nav-overlay[data-state="closed"] .mobile-nav-sheet,
+  .mobile-nav-overlay[data-state="closing"] .mobile-nav-sheet {
+    opacity: 0 !important;
+  }
+}
 

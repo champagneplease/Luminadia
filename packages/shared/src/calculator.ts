@@ -295,7 +295,8 @@ export const AUTOMOTIVE_PRESET_TEMPLATES: Record<string, AutomotiveTemplate> = {
 export function generateWhatsAppConsultationUrl(
   result: RollEstimationResult,
   clientName?: string,
-  extraNotes?: string
+  extraNotes?: string,
+  clientPhone?: string
 ): string {
   const phone = '5493834272000';
   const categoryNames: Record<ProjectCategory, string> = {
@@ -319,6 +320,10 @@ export function generateWhatsAppConsultationUrl(
 
   if (clientName) {
     lines.push(`*Contacto:* ${clientName}`);
+  }
+
+  if (clientPhone) {
+    lines.push(`*Teléfono:* ${clientPhone}`);
   }
 
   if (extraNotes) {

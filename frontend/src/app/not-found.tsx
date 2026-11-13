@@ -1,31 +1,39 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sun, ArrowLeft, Calculator } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowLeft, Calculator } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-[75vh] flex items-center justify-center px-4 py-20 bg-[#0e1110] text-[#f4f3ef]">
+    <div className="min-h-[75vh] flex items-center justify-center px-4 py-20 bg-white text-[#1E242B]">
       <div className="max-w-lg text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-[#161a19] border border-[#2a322f] flex items-center justify-center text-amber-500 mx-auto">
-          <Sun className="w-8 h-8 stroke-[2.2]" />
+        <div className="w-20 h-20 rounded-full overflow-hidden bg-white flex items-center justify-center mx-auto shrink-0">
+          <Image
+            src="/images/luminadia-logo.png"
+            alt="LuminADia"
+            width={80}
+            height={80}
+            className="w-full h-full object-cover"
+            priority
+          />
         </div>
 
-        <span className="text-xs uppercase tracking-widest text-amber-500 font-bold block">
+        <p className="text-xs font-bold text-[#1E242B]/70 block">
           Error 404
-        </span>
+        </p>
 
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#f4f3ef]">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.035em] text-[#1E242B]">
           Página no encontrada.
         </h1>
 
-        <p className="text-sm sm:text-base text-[#9aa19d] leading-relaxed">
+        <p className="text-sm sm:text-base text-[#4A545E] leading-relaxed">
           El enlace que intentaste abrir no existe o fue trasladado. Te invitamos a explorar nuestros servicios de control solar o utilizar la calculadora de materiales.
         </p>
 
         <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#161a19] border border-[#2a322f] hover:border-amber-500 text-sm font-semibold text-[#f4f3ef] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#F8F9FA] hover:bg-[#F1F3F5] text-sm font-semibold text-[#1E242B] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Volver al Inicio</span>
@@ -33,7 +41,7 @@ export default function NotFound() {
 
           <Link
             href="/calculadora-materiales"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-[#0e1110] font-bold text-sm transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#1E242B] hover:bg-[#2E3742] text-white font-bold text-sm transition-colors"
           >
             <Calculator className="w-4 h-4" />
             <span>Calculadora de Materiales</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Calculator,
@@ -18,7 +18,9 @@ import {
   ArrowRight,
   RotateCcw,
   Info,
+  ExternalLink,
 } from 'lucide-react';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 import {
   ProjectCategory,
   MeasurementUnit,
@@ -32,6 +34,8 @@ import {
   STANDARD_ROLL_WIDTH_METERS,
   RollEstimationResult,
 } from '@/shared';
+import { useSiteConfig } from '@/context/SiteConfigContext';
+import TextReveal from '@/components/TextReveal';
 
 // Catálogo de láminas verídicas de Luminadia
 const MOCK_PRODUCTS: FilmProduct[] = [
@@ -123,6 +127,8 @@ const MOCK_PRODUCTS: FilmProduct[] = [
 ];
 
 export default function MaterialCalculatorPage() {
+  const { calculator, texts } = useSiteConfig();
+
   // Paso 1: Categoría de proyecto
   const [category, setCategory] = useState<ProjectCategory>('hogares');
 
@@ -152,14 +158,34 @@ export default function MaterialCalculatorPage() {
   const [customVehicleMake, setCustomVehicleMake] = useState('');
   const [customVehicleModel, setCustomVehicleModel] = useState('');
 
-  // Parámetros técnicos de corte configurables
+  // Parámetros técnicos de corte configurables alimentados dinámicamente por el Administrador
   const [cuttingMarginCm, setCuttingMarginCm] = useState(2.5);
-  const [safetyWastePercent, setSafetyWastePercent] = useState(12);
+  const [safetyWastePercent, setSafetyWastePercent] = useState(10);
+
+  // Sincronizar dinámicamente cuando el administrador modifica parámetros o cambia categoría
+  useEffect(() => {
+    if (calculator) {
+      setCuttingMarginCm(calculator.cuttingMarginCm ?? 2.5);
+      if (category === 'automotriz') {
+        setSafetyWastePercent(calculator.automotiveSafetyMarginPercent ?? 15);
+      } else if (category === 'comercios-empresas') {
+        setSafetyWastePercent(calculator.commercialSafetyMarginPercent ?? 12);
+      } else {
+        setSafetyWastePercent(calculator.residentialSafetyMarginPercent ?? 10);
+      }
+    }
+  }, [category, calculator]);
 
   // Formulario de consulta a Luminadia
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [clientNotes, setClientNotes] = useState('');
+  const [formErrors, setFormErrors] = useState<{
+    name?: string;
+    phone?: string;
+    notes?: string;
+  }>({});
+  const [waSentUrl, setWaSentUrl] = useState<string | null>(null);
   const [savedSuccessMessage, setSavedSuccessMessage] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -255,8 +281,8 @@ export default function MaterialCalculatorPage() {
         const res = calculateMaterialEstimation({
           category,
           productId: selectedProduct.name,
-          rollWidthMeters: selectedProduct.rollWidthMeters,
-          usableWidthMeters: selectedProduct.usableWidthMeters,
+          rollWidthMeters: calculator.rollWidthMeters || selectedProduct.rollWidthMeters,
+          usableWidthMeters: calculator.usableWidthMeters || selectedProduct.usableWidthMeters,
           pieces: effectivePieces,
           cuttingMarginCm,
           safetyWastePercent,
@@ -290,21 +316,30 @@ export default function MaterialCalculatorPage() {
       selectedAutomotiveZones,
     ]);
 
-  // Generar URL de WhatsApp oficial
+  // Generar URL de WhatsApp oficial dinámico
   const whatsAppUrl = useMemo(() => {
     if (!calculationResult.result) return '';
+    const cleanPhone = clientPhone.replace(/\D/g, '');
+    const combinedNotes = [
+      category === 'automotriz' && (customVehicleMake || customVehicleModel)
+        ? `Vehículo: ${customVehicleMake.trim()} ${customVehicleModel.trim()} (${vehicleType})`
+        : null,
+      clientNotes.trim() || null,
+    ].filter(Boolean).join(' · ');
+
     return generateWhatsAppConsultationUrl(
       calculationResult.result,
-      clientName || undefined,
-      clientNotes || (category === 'automotriz' ? `Vehículo: ${customVehicleMake} ${customVehicleModel} (${vehicleType})` : undefined)
+      clientName.trim() || undefined,
+      combinedNotes || undefined,
+      cleanPhone || undefined
     );
-  }, [calculationResult.result, clientName, clientNotes, category, customVehicleMake, customVehicleModel, vehicleType]);
+  }, [calculationResult.result, clientName, clientPhone, clientNotes, category, customVehicleMake, customVehicleModel, vehicleType]);
 
   // Copiar resumen al portapapeles
   const handleCopySummary = () => {
     if (!calculationResult.result) return;
     const r = calculationResult.result;
-    const summaryText = `RESUMEN DE ESTIMACIÓN — LUMINADIA (Catamarca)
+    const summaryText = `RESUMEN DE ESTIMACIÓN · LUMINADIA (Catamarca)
 Categoría: ${r.category}
 Producto: ${r.productName}
 Superficie Neta: ${r.netSurfaceAreaM2} m²
@@ -319,61 +354,97 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  // Guardar solicitud en el backend
-  const handleSaveRequest = async (e: React.FormEvent) => {
+  // Enviar consulta técnica directamente al WhatsApp del encargado
+  const handleSendWhatsAppConsultation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!calculationResult.result) return;
 
-    try {
-      const payload = {
-        category,
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        contactName: clientName || 'Consulta web',
-        contactPhone: clientPhone || 'No informado',
-        vehicleDetails: category === 'automotriz' ? `${customVehicleMake} ${customVehicleModel} (${vehicleType})` : undefined,
-        notes: clientNotes,
-        calculationSummary: calculationResult.result,
-      };
-
-      // Intentar enviar al endpoint de backend local (o fallback local)
-      const res = await fetch('http://localhost:3001/api/v1/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        setSavedSuccessMessage('¡Solicitud guardada en el sistema! Un asesor de Luminadia la revisará en breve.');
-      } else {
-        // En caso de que el backend esté en proceso de inicio, guardar en localStorage y notificar
-        const localHistory = JSON.parse(localStorage.getItem('luminadia_requests') || '[]');
-        localHistory.push({ ...payload, createdAt: new Date().toISOString() });
-        localStorage.setItem('luminadia_requests', JSON.stringify(localHistory));
-        setSavedSuccessMessage('¡Solicitud registrada localmente! Podés enviarla también por WhatsApp para atención inmediata.');
-      }
-    } catch {
-      setSavedSuccessMessage('¡Consulta preparada! Hacé clic en enviar por WhatsApp.');
+    const newErrors: typeof formErrors = {};
+    const trimmedName = clientName.trim();
+    if (!trimmedName) {
+      newErrors.name = 'El nombre o empresa es obligatorio (hasta 30 caracteres).';
+    } else if (trimmedName.length > 30) {
+      newErrors.name = 'El nombre no puede superar los 30 caracteres.';
     }
+
+    const cleanPhone = clientPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      newErrors.phone = 'El teléfono celular es obligatorio.';
+    } else if (cleanPhone.length !== 10) {
+      newErrors.phone = 'Ingresá 10 dígitos: código de área (característica) + número restante, sin 0 ni 15.';
+    }
+
+    const trimmedNotes = clientNotes.trim();
+    if (trimmedNotes.length > 250) {
+      newErrors.notes = 'Las observaciones no pueden superar los 250 caracteres.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      return;
+    }
+
+    setFormErrors({});
+
+    const combinedNotes = [
+      category === 'automotriz' && (customVehicleMake || customVehicleModel)
+        ? `Vehículo: ${customVehicleMake.trim()} ${customVehicleModel.trim()} (${vehicleType})`
+        : null,
+      trimmedNotes || null,
+    ].filter(Boolean).join(' · ');
+
+    const targetUrl = generateWhatsAppConsultationUrl(
+      calculationResult.result,
+      trimmedName,
+      combinedNotes || undefined,
+      cleanPhone
+    );
+
+    setWaSentUrl(targetUrl);
+
+    // Respaldo silencioso en segundo plano
+    const payload = {
+      category,
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      contactName: trimmedName,
+      contactPhone: cleanPhone,
+      vehicleDetails: category === 'automotriz' ? `${customVehicleMake} ${customVehicleModel} (${vehicleType})` : undefined,
+      notes: combinedNotes,
+      calculationSummary: calculationResult.result,
+    };
+    fetch('http://localhost:3001/api/v1/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => null);
+
+    if (typeof window !== 'undefined') {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    setSavedSuccessMessage('¡Estimación enviada al WhatsApp del encargado! Si tu navegador bloqueó la ventana emergente, hacé clic en el botón verde.');
   };
 
   return (
-    <div className="bg-[#0e1110] text-[#f4f3ef] min-h-screen py-10 sm:py-16">
+    <div className="w-full max-w-full overflow-x-hidden bg-white text-[#1E242B] min-h-[100dvh] py-10 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Encabezado editorial de la calculadora */}
         <div className="max-w-3xl space-y-4 mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#161a19] border border-[#2a322f] text-xs font-semibold text-amber-500">
-            <Calculator className="w-4 h-4" />
-            <span>Herramienta Técnica</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#f4f3ef] leading-tight">
-            Calculadora de materiales para control solar.
-          </h1>
-          <p className="text-base sm:text-lg text-[#9aa19d] leading-relaxed">
+          <p className="animate-hero-location text-xs font-bold text-[#1E242B]/70 tracking-normal flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-[#1E242B]" />
+            <span>Herramienta de Cómputo Métrico</span>
+          </p>
+          <TextReveal
+            as="h1"
+            text="Calculadora de materiales para control solar."
+            className="animate-hero-title text-4xl sm:text-6xl lg:text-7xl font-black tracking-[-0.035em] text-[#1E242B] leading-[1.04] text-balance"
+          />
+          <p className="animate-hero-subtitle text-base sm:text-lg text-[#4A545E] leading-relaxed max-w-2xl text-balance">
             Ingresá las medidas de tus superficies para estimar la superficie neta a cubrir y la cantidad de metros lineales de bobina necesarios.
           </p>
-          <div className="p-3.5 rounded-lg bg-[#161a19] border border-amber-600/30 text-xs text-[#9aa19d] flex items-start gap-2.5">
-            <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-2xl bg-white text-xs text-[#4A545E] flex items-start gap-3">
+            <Info className="w-4 h-4 text-[#1E242B] shrink-0 mt-0.5" />
             <span>
               <strong>Aviso de transparencia:</strong> Esta herramienta calcula insumos físicos de lámina y mermas de corte. No genera cotizaciones comerciales, aranceles de mano de obra ni importes monetarios.
             </span>
@@ -385,23 +456,23 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
           {/* COLUMNA IZQUIERDA: PASOS 1, 2, 3 */}
           <div className="lg:col-span-7 space-y-8">
             {/* PASO 1: SELECCIÓN DE CATEGORÍA */}
-            <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-4">
+            <div className="p-6 sm:p-8 rounded-3xl bg-white space-y-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider text-amber-500 font-bold">
-                  Paso 1
+                <span className="text-xs font-bold text-[#1E242B]">
+                  Paso 01
                 </span>
-                <span className="text-xs text-[#9aa19d]">Tipo de proyecto</span>
+                <span className="text-xs text-[#4A545E]">Tipo de proyecto</span>
               </div>
-              <h2 className="text-xl font-bold text-[#f4f3ef]">¿Dónde aplicarás el control solar?</h2>
+              <h2 className="text-xl font-bold text-[#1E242B]">¿Dónde aplicarás el control solar?</h2>
 
               <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => handleCategoryChange('automotriz')}
-                  className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all ${
+                  className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-[background-color,color] ${
                     category === 'automotriz'
-                      ? 'bg-amber-600/10 border-amber-500 text-amber-400 font-bold'
-                      : 'bg-[#1e2422]/60 border-[#2a322f] text-[#9aa19d] hover:text-[#f4f3ef]'
+                      ? 'bg-[#1E242B] text-white font-bold'
+                      : 'bg-[#F8F9FA] text-[#4A545E] hover:text-[#1E242B] hover:bg-[#F1F3F5]'
                   }`}
                 >
                   <Car className="w-6 h-6" />
@@ -411,10 +482,10 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                 <button
                   type="button"
                   onClick={() => handleCategoryChange('hogares')}
-                  className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all ${
+                  className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-[background-color,color] ${
                     category === 'hogares'
-                      ? 'bg-amber-600/10 border-amber-500 text-amber-400 font-bold'
-                      : 'bg-[#1e2422]/60 border-[#2a322f] text-[#9aa19d] hover:text-[#f4f3ef]'
+                      ? 'bg-[#1E242B] text-white font-bold'
+                      : 'bg-[#F8F9FA] text-[#4A545E] hover:text-[#1E242B] hover:bg-[#F1F3F5]'
                   }`}
                 >
                   <Home className="w-6 h-6" />
@@ -424,10 +495,10 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                 <button
                   type="button"
                   onClick={() => handleCategoryChange('comercios-empresas')}
-                  className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all ${
+                  className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-[background-color,color] ${
                     category === 'comercios-empresas'
-                      ? 'bg-amber-600/10 border-amber-500 text-amber-400 font-bold'
-                      : 'bg-[#1e2422]/60 border-[#2a322f] text-[#9aa19d] hover:text-[#f4f3ef]'
+                      ? 'bg-[#1E242B] text-white font-bold'
+                      : 'bg-[#F8F9FA] text-[#4A545E] hover:text-[#1E242B] hover:bg-[#F1F3F5]'
                   }`}
                 >
                   <Building2 className="w-6 h-6" />
@@ -437,25 +508,25 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
             </div>
 
             {/* PASO 2: SELECCIÓN DEL MATERIAL DEL CATÁLOGO REAL */}
-            <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-4">
+            <div className="p-6 sm:p-8 rounded-3xl bg-white space-y-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider text-amber-500 font-bold">
-                  Paso 2
+                <span className="text-xs font-bold text-[#1E242B]">
+                  Paso 02
                 </span>
-                <span className="text-xs text-[#9aa19d]">Lámina y características</span>
+                <span className="text-xs text-[#4A545E]">Lámina y características</span>
               </div>
-              <h2 className="text-xl font-bold text-[#f4f3ef]">Elegí el producto del catálogo</h2>
+              <h2 className="text-xl font-bold text-[#1E242B]">Elegí el producto del catálogo</h2>
 
               <div className="space-y-3">
-                {availableProducts.map((prod) => {
+                {availableProducts.map((prod, idx) => {
                   const isSelected = prod.id === selectedProductId;
                   return (
                     <label
-                      key={prod.id}
-                      className={`block p-4 rounded-xl border cursor-pointer transition-all ${
+                      key={`prod-${prod.id}-${idx}`}
+                      className={`block p-4 sm:p-5 rounded-2xl cursor-pointer transition-[background-color,color] ${
                         isSelected
-                          ? 'bg-amber-600/10 border-amber-500'
-                          : 'bg-[#1e2422]/40 border-[#2a322f] hover:border-[#636b67]'
+                          ? 'bg-[#F8F9FA] ring-2 ring-[#1E242B]'
+                          : 'bg-[#F8F9FA]/60 hover:bg-[#F8F9FA]'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -465,19 +536,19 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                           value={prod.id}
                           checked={isSelected}
                           onChange={() => setSelectedProductId(prod.id)}
-                          className="mt-1 w-4 h-4 text-amber-600 focus:ring-amber-500 focus:ring-offset-0 bg-[#0e1110] border-[#2a322f]"
+                          className="mt-1 w-4 h-4 text-[#1E242B] accent-[#1E242B] focus:ring-[#1E242B]"
                         />
                         <div className="flex-1 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-base font-bold text-[#f4f3ef]">{prod.name}</span>
-                            <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#161a19] text-[#9aa19d]">
-                              Ancho: {prod.rollWidthMeters}m
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-base font-bold text-[#1E242B]">{prod.name}</span>
+                            <span className="text-xs tabular-nums font-semibold px-2.5 py-1 rounded-md bg-white text-[#1E242B]">
+                              Bobina {prod.rollWidthMeters} m
                             </span>
                           </div>
-                          <p className="text-xs text-[#9aa19d] leading-relaxed">
+                          <p className="text-xs text-[#4A545E] leading-relaxed">
                             {prod.description}
                           </p>
-                          <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-[#636b67]">
+                          <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-[#6C7680] tabular-nums">
                             <span>VLT: {prod.vltPercent}%</span>
                             <span>•</span>
                             <span>Rechazo IR: {prod.irRejectionPercent}%</span>
@@ -493,12 +564,12 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
             </div>
 
             {/* PASO 3: INGRESO DE MEDIDAS O SELECCIÓN DE CRISTALES */}
-            <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-5">
+            <div className="p-6 sm:p-8 rounded-3xl bg-white space-y-6">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider text-amber-500 font-bold">
-                  Paso 3
+                <span className="text-xs font-bold text-[#1E242B]">
+                  Paso 03
                 </span>
-                <span className="text-xs text-[#9aa19d]">
+                <span className="text-xs text-[#4A545E]">
                   {category === 'automotriz' ? 'Cristales vehiculares' : 'Dimensiones de aberturas'}
                 </span>
               </div>
@@ -506,7 +577,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
               {category === 'automotriz' ? (
                 /* Configuración vehicular */
                 <div className="space-y-5">
-                  <h2 className="text-xl font-bold text-[#f4f3ef]">Detalles del vehículo</h2>
+                  <h2 className="text-xl font-bold text-[#1E242B]">Detalles del vehículo</h2>
 
                   {/* Silueta / Tipo de vehículo */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -517,10 +588,10 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                           key={type}
                           type="button"
                           onClick={() => setVehicleType(type)}
-                          className={`py-3 px-2 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-colors ${
+                          className={`py-3 px-2 rounded-xl text-xs font-bold transition-colors ${
                             isSel
-                              ? 'bg-amber-600 text-[#0e1110] border-amber-500'
-                              : 'bg-[#1e2422]/60 text-[#9aa19d] border-[#2a322f] hover:text-[#f4f3ef]'
+                              ? 'bg-[#1E242B] text-white'
+                              : 'bg-[#F8F9FA] text-[#4A545E] hover:text-[#1E242B] hover:bg-[#F1F3F5]'
                           }`}
                         >
                           {AUTOMOTIVE_PRESET_TEMPLATES[type]?.label || type}
@@ -532,36 +603,48 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                   {/* Campos opcionales de marca y modelo */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <div>
-                      <label htmlFor="make-input" className="block text-xs font-medium text-[#9aa19d] mb-1">
-                        Marca del auto (opcional)
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="make-input" className="block text-xs font-medium text-[#4A545E]">
+                          Marca del auto (opcional)
+                        </label>
+                        <span className="text-[11px] text-[#6C7680] tabular-nums font-medium">
+                          {30 - customVehicleMake.length} restantes
+                        </span>
+                      </div>
                       <input
                         id="make-input"
                         type="text"
+                        maxLength={30}
                         value={customVehicleMake}
-                        onChange={(e) => setCustomVehicleMake(e.target.value)}
+                        onChange={(e) => setCustomVehicleMake(e.target.value.slice(0, 30))}
                         placeholder="Ej. Toyota, Volkswagen, Fiat..."
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0e1110] border border-[#2a322f] text-[#f4f3ef] text-sm focus:border-amber-500 focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9FA] text-[#1E242B] text-sm focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                       />
                     </div>
                     <div>
-                      <label htmlFor="model-input" className="block text-xs font-medium text-[#9aa19d] mb-1">
-                        Modelo y año (opcional)
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="model-input" className="block text-xs font-medium text-[#4A545E]">
+                          Modelo y año (opcional)
+                        </label>
+                        <span className="text-[11px] text-[#6C7680] tabular-nums font-medium">
+                          {30 - customVehicleModel.length} restantes
+                        </span>
+                      </div>
                       <input
                         id="model-input"
                         type="text"
+                        maxLength={30}
                         value={customVehicleModel}
-                        onChange={(e) => setCustomVehicleModel(e.target.value)}
+                        onChange={(e) => setCustomVehicleModel(e.target.value.slice(0, 30))}
                         placeholder="Ej. Corolla 2023, Hilux..."
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0e1110] border border-[#2a322f] text-[#f4f3ef] text-sm focus:border-amber-500 focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9FA] text-[#1E242B] text-sm focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                       />
                     </div>
                   </div>
 
                   {/* Zonas de cristales a polarizar */}
                   <div className="pt-2 space-y-2">
-                    <label className="block text-xs font-semibold text-[#9aa19d] uppercase tracking-wider">
+                    <label className="block text-xs font-bold text-[#1E242B]">
                       Cristales a cubrir:
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -576,17 +659,17 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                         return (
                           <label
                             key={zone}
-                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer text-xs font-medium transition-colors ${
+                            className={`flex items-center gap-3 p-3.5 rounded-xl cursor-pointer text-xs font-medium transition-colors ${
                               isChecked
-                                ? 'bg-amber-600/10 border-amber-500/50 text-[#f4f3ef]'
-                                : 'bg-[#1e2422]/40 border-[#2a322f] text-[#9aa19d]'
+                                ? 'bg-[#F8F9FA] text-[#1E242B] font-semibold ring-1 ring-[#1E242B]'
+                                : 'bg-[#F8F9FA]/60 text-[#4A545E] hover:bg-[#F8F9FA]'
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => toggleAutomotiveZone(zone as AutomotiveGlassZone)}
-                              className="w-4 h-4 text-amber-600 rounded bg-[#0e1110] border-[#2a322f] focus:ring-0"
+                              className="w-4 h-4 text-[#1E242B] accent-[#1E242B] rounded focus:ring-0"
                             />
                             <span>{label}</span>
                           </label>
@@ -599,11 +682,11 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                 /* Ingreso de superficies para Hogares y Comercios */
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-[#f4f3ef]">Medidas de las superficies</h2>
+                    <h2 className="text-xl font-bold text-[#1E242B]">Medidas de las superficies</h2>
                     <button
                       type="button"
                       onClick={addPieceRow}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1e2422] border border-[#2a322f] hover:border-amber-500 text-xs font-semibold text-amber-400 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F8F9FA] hover:bg-[#F1F3F5] text-xs font-semibold text-[#1E242B] transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Agregar paño</span>
@@ -613,23 +696,29 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                   <div className="space-y-3">
                     {pieces.map((piece, index) => (
                       <div
-                        key={piece.id}
-                        className="p-3.5 rounded-xl bg-[#0e1110] border border-[#2a322f] space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3"
+                        key={`piece-${piece.id || index}-${index}`}
+                        className="p-4 rounded-2xl bg-[#F8F9FA] space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3"
                       >
                         {/* Etiqueta / Nombre */}
                         <div className="flex-1">
-                          <label
-                            htmlFor={`label-${piece.id}`}
-                            className="block text-[11px] text-[#636b67] uppercase tracking-wider mb-1"
-                          >
-                            Ubicación #{index + 1}
-                          </label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label
+                              htmlFor={`label-${piece.id}`}
+                              className="block text-xs font-semibold text-[#4A545E]"
+                            >
+                              Ubicación #{index + 1}
+                            </label>
+                            <span className="text-[10px] text-[#6C7680] tabular-nums font-medium">
+                              {30 - (piece.label?.length || 0)} restantes
+                            </span>
+                          </div>
                           <input
                             id={`label-${piece.id}`}
                             type="text"
-                            value={piece.label}
-                            onChange={(e) => updatePieceRow(piece.id, 'label', e.target.value)}
-                            className="w-full px-3 py-1.5 rounded-lg bg-[#161a19] border border-[#2a322f] text-sm text-[#f4f3ef] focus:border-amber-500 focus:outline-none"
+                            maxLength={30}
+                            value={piece.label || ''}
+                            onChange={(e) => updatePieceRow(piece.id, 'label', e.target.value.slice(0, 30))}
+                            className="w-full px-3 py-2 rounded-xl bg-white text-sm text-[#1E242B] focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                             placeholder="Ej. Living, Balcón..."
                           />
                         </div>
@@ -638,7 +727,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                         <div className="w-full sm:w-28">
                           <label
                             htmlFor={`width-${piece.id}`}
-                            className="block text-[11px] text-[#636b67] uppercase tracking-wider mb-1"
+                            className="block text-xs font-semibold text-[#4A545E] mb-1"
                           >
                             Ancho ({piece.unit})
                           </label>
@@ -651,7 +740,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                             onChange={(e) =>
                               updatePieceRow(piece.id, 'width', parseFloat(e.target.value) || 0)
                             }
-                            className="w-full px-3 py-1.5 rounded-lg bg-[#161a19] border border-[#2a322f] text-sm text-[#f4f3ef] tabular-nums focus:border-amber-500 focus:outline-none"
+                            className="w-full px-3 py-2 rounded-xl bg-white text-sm text-[#1E242B] tabular-nums focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                           />
                         </div>
 
@@ -659,7 +748,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                         <div className="w-full sm:w-28">
                           <label
                             htmlFor={`height-${piece.id}`}
-                            className="block text-[11px] text-[#636b67] uppercase tracking-wider mb-1"
+                            className="block text-xs font-semibold text-[#4A545E] mb-1"
                           >
                             Alto ({piece.unit})
                           </label>
@@ -672,7 +761,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                             onChange={(e) =>
                               updatePieceRow(piece.id, 'height', parseFloat(e.target.value) || 0)
                             }
-                            className="w-full px-3 py-1.5 rounded-lg bg-[#161a19] border border-[#2a322f] text-sm text-[#f4f3ef] tabular-nums focus:border-amber-500 focus:outline-none"
+                            className="w-full px-3 py-2 rounded-xl bg-white text-sm text-[#1E242B] tabular-nums focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                           />
                         </div>
 
@@ -680,7 +769,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                         <div className="w-full sm:w-20">
                           <label
                             htmlFor={`qty-${piece.id}`}
-                            className="block text-[11px] text-[#636b67] uppercase tracking-wider mb-1"
+                            className="block text-xs font-semibold text-[#4A545E] mb-1"
                           >
                             Cant.
                           </label>
@@ -693,7 +782,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                             onChange={(e) =>
                               updatePieceRow(piece.id, 'quantity', parseInt(e.target.value, 10) || 1)
                             }
-                            className="w-full px-3 py-1.5 rounded-lg bg-[#161a19] border border-[#2a322f] text-sm text-[#f4f3ef] tabular-nums focus:border-amber-500 focus:outline-none"
+                            className="w-full px-3 py-2 rounded-xl bg-white text-sm text-[#1E242B] tabular-nums focus:outline-none focus:ring-1 focus:ring-[#1E242B]"
                           />
                         </div>
 
@@ -703,7 +792,7 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                             type="button"
                             onClick={() => removePieceRow(piece.id)}
                             disabled={pieces.length <= 1}
-                            className="p-2 rounded-lg text-[#9aa19d] hover:text-red-400 hover:bg-[#1e2422] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 rounded-lg text-[#6C7680] hover:text-red-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             aria-label={`Eliminar fila ${index + 1}`}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -716,10 +805,10 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
               )}
 
               {/* Ajustes técnicos de instalación */}
-              <div className="pt-4 border-t border-[#2a322f] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label htmlFor="cutting-margin" className="block text-[#9aa19d] mb-1">
-                    Margen de recorte perimetral: <span className="text-[#f4f3ef] font-mono">{cuttingMarginCm} cm</span>
+                  <label htmlFor="cutting-margin" className="block text-[#4A545E] mb-1">
+                    Margen de recorte perimetral: <span className="text-[#1E242B] tabular-nums font-bold">{cuttingMarginCm} cm</span>
                   </label>
                   <input
                     id="cutting-margin"
@@ -729,16 +818,16 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                     step="0.5"
                     value={cuttingMarginCm}
                     onChange={(e) => setCuttingMarginCm(parseFloat(e.target.value))}
-                    className="w-full accent-amber-500"
+                    className="w-full accent-[#1E242B]"
                   />
-                  <span className="text-[10px] text-[#636b67]">
+                  <span className="text-[10px] text-[#6C7680]">
                     Sobrante para ajuste manual con cutter en obra.
                   </span>
                 </div>
 
                 <div>
-                  <label htmlFor="safety-waste" className="block text-[#9aa19d] mb-1">
-                    Merma técnica estimada: <span className="text-[#f4f3ef] font-mono">{safetyWastePercent}%</span>
+                  <label htmlFor="safety-waste" className="block text-[#4A545E] mb-1">
+                    Merma técnica estimada: <span className="text-[#1E242B] tabular-nums font-bold">{safetyWastePercent}%</span>
                   </label>
                   <input
                     id="safety-waste"
@@ -748,9 +837,9 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
                     step="1"
                     value={safetyWastePercent}
                     onChange={(e) => setSafetyWastePercent(parseInt(e.target.value, 10))}
-                    className="w-full accent-amber-500"
+                    className="w-full accent-[#1E242B]"
                   />
-                  <span className="text-[10px] text-[#636b67]">
+                  <span className="text-[10px] text-[#6C7680]">
                     Factor de desperdicio por corte y acomodamiento en bobina.
                   </span>
                 </div>
@@ -761,160 +850,241 @@ Nota: Estimación técnica de insumos sin importes monetarios.`;
           {/* COLUMNA DERECHA: RESULTADOS (PASOS 4, 5, 6, 7) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             {calculationResult.error ? (
-              <div className="p-6 rounded-xl bg-red-950/20 border border-red-500/50 text-red-200 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-red-400">
+              <div className="p-6 rounded-3xl bg-red-50 text-red-900 space-y-2">
+                <div className="flex items-center gap-2 font-bold text-red-700">
                   <AlertTriangle className="w-5 h-5" />
                   <span>Atención en las medidas</span>
                 </div>
                 <p className="text-sm">{calculationResult.error}</p>
               </div>
             ) : calculationResult.result ? (
-              <div className="p-6 rounded-2xl bg-[#161a19] border border-[#2a322f] space-y-6 shadow-xl">
+              <div className="p-6 sm:p-8 rounded-3xl bg-white space-y-6">
                 {/* Cabecera del cálculo */}
-                <div className="border-b border-[#2a322f] pb-4">
-                  <span className="text-xs uppercase tracking-wider text-amber-500 font-bold block mb-1">
+                <div className="pb-2">
+                  <span className="text-xs font-bold text-[#1E242B] block mb-1">
                     Estimación de Insumos
                   </span>
-                  <h3 className="text-xl font-bold text-[#f4f3ef]">
+                  <h3 className="text-2xl font-black tracking-tight text-[#1E242B]">
                     {calculationResult.result.productName}
                   </h3>
-                  <p className="text-xs text-[#9aa19d] mt-1">
-                    Ancho de rollo: <strong className="text-[#f4f3ef]">{calculationResult.result.rollWidthMeters} m</strong> (útil: {calculationResult.result.usableWidthMeters} m)
+                  <p className="text-xs text-[#4A545E] mt-1">
+                    Ancho de rollo: <strong className="text-[#1E242B] tabular-nums">{calculationResult.result.rollWidthMeters} m</strong> (útil: <span className="tabular-nums">{calculationResult.result.usableWidthMeters} m</span>)
                   </p>
                 </div>
 
                 {/* Métricas principales comparativas */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {/* Superficie Neta */}
-                  <div className="p-4 rounded-xl bg-[#0e1110] border border-[#2a322f]">
-                    <span className="text-xs text-[#9aa19d] block mb-1">Superficie neta de cristal</span>
-                    <div className="text-2xl sm:text-3xl font-bold text-[#f4f3ef] tabular-nums">
-                      {calculationResult.result.netSurfaceAreaM2} <span className="text-sm font-normal text-[#9aa19d]">m²</span>
+                  <div className="p-4 rounded-2xl bg-[#F8F9FA]">
+                    <span className="text-xs text-[#4A545E] block mb-1">Superficie neta de cristal</span>
+                    <div className="text-2xl sm:text-3xl font-black text-[#1E242B] tabular-nums">
+                      {calculationResult.result.netSurfaceAreaM2} <span className="text-sm font-normal text-[#4A545E]">m²</span>
                     </div>
-                    <span className="text-[11px] text-[#636b67] mt-1 block">
+                    <span className="text-[11px] text-[#6C7680] mt-1 block">
                       {calculationResult.result.piecesCount} {calculationResult.result.piecesCount === 1 ? 'paño' : 'paños'} en total
                     </span>
                   </div>
 
                   {/* Metros lineales de rollo a retirar */}
-                  <div className="p-4 rounded-xl bg-[#0e1110] border border-amber-600/40">
-                    <span className="text-xs text-amber-400 block mb-1">Largo de rollo a retirar</span>
-                    <div className="text-2xl sm:text-3xl font-bold text-amber-500 tabular-nums">
-                      ~{calculationResult.result.estimatedLinearMetersNeeded} <span className="text-sm font-normal text-amber-400">m</span>
+                  <div className="p-4 rounded-2xl bg-[#1E242B] text-white">
+                    <span className="text-xs text-[#B3B6B9] block mb-1">Largo de rollo a retirar</span>
+                    <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
+                      ~{calculationResult.result.estimatedLinearMetersNeeded} <span className="text-sm font-normal text-[#B3B6B9]">m</span>
                     </div>
-                    <span className="text-[11px] text-[#9aa19d] mt-1 block">
-                      Bobina de {calculationResult.result.rollWidthMeters}m ancho
+                    <span className="text-[11px] text-[#B3B6B9] mt-1 block">
+                      Bobina de {calculationResult.result.rollWidthMeters} m
                     </span>
                   </div>
                 </div>
 
                 {/* Desglose de rendimiento */}
-                <div className="p-4 rounded-xl bg-[#0e1110] border border-[#2a322f] space-y-2 text-xs">
-                  <div className="flex justify-between text-[#9aa19d]">
+                <div className="p-4 rounded-2xl bg-[#F8F9FA] space-y-2 text-xs">
+                  <div className="flex justify-between text-[#4A545E]">
                     <span>Área total de rollo consumido:</span>
-                    <strong className="text-[#f4f3ef] tabular-nums">
+                    <strong className="text-[#1E242B] tabular-nums">
                       {calculationResult.result.totalRollAreaConsumedM2} m²
                     </strong>
                   </div>
-                  <div className="flex justify-between text-[#9aa19d]">
+                  <div className="flex justify-between text-[#4A545E]">
                     <span>Aprovechamiento teórico de bobina:</span>
-                    <strong className="text-emerald-400 tabular-nums">
+                    <strong className="text-[#1E242B] font-bold tabular-nums">
                       {calculationResult.result.yieldEfficiencyPercentage}%
                     </strong>
                   </div>
-                  <div className="flex justify-between text-[#9aa19d]">
+                  <div className="flex justify-between text-[#4A545E]">
                     <span>Merma técnica y márgenes de corte:</span>
-                    <strong className="text-amber-400 tabular-nums">
+                    <strong className="text-[#1E242B] tabular-nums">
                       ~{calculationResult.result.estimatedWastePercentage}% ({calculationResult.result.estimatedScrapAreaM2} m²)
                     </strong>
                   </div>
                 </div>
 
                 {/* Supuestos y Limitaciones Técnicas */}
-                <div className="space-y-2 border-t border-[#2a322f] pt-4">
-                  <span className="text-xs font-semibold text-[#f4f3ef] uppercase tracking-wide block">
+                <div className="space-y-2 pt-2">
+                  <span className="text-xs font-bold text-[#1E242B] block">
                     Supuestos del cálculo:
                   </span>
-                  <ul className="space-y-1.5 text-xs text-[#9aa19d]">
+                  <ul className="space-y-1.5 text-xs text-[#4A545E]">
                     {calculationResult.result.assumptions.map((item, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-amber-500">•</span>
+                        <span className="text-[#1E242B]">•</span>
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
+
+                  {calculator.disclaimer && (
+                    <div data-ui="true" className="p-3 rounded-xl bg-white border border-[#B3B6B9] text-[11px] text-[#4A545E] italic">
+                      {calculator.disclaimer}
+                    </div>
+                  )}
                 </div>
 
                 {/* PASO 7: CONSULTA Y ENVÍO A LUMINADIA */}
-                <div className="border-t border-[#2a322f] pt-5 space-y-4">
-                  <span className="text-xs uppercase tracking-wider text-amber-500 font-bold block">
-                    Paso 7: Solicitar Asesoramiento
-                  </span>
-
-                  <p className="text-xs text-[#9aa19d]">
-                    Podés compartir esta estimación directamente al WhatsApp oficial de Luminadia para coordinar relevamiento o consultar stock:
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href={whatsAppUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-colors shadow-md"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>Enviar por WhatsApp</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={handleCopySummary}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[#1e2422] border border-[#2a322f] hover:border-amber-500 text-sm font-semibold text-[#f4f3ef] transition-colors"
-                    >
-                      {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
-                      <span>{copiedLink ? 'Copiado' : 'Copiar Resumen'}</span>
-                    </button>
+                <div className="pt-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#1E242B] block">
+                      Paso 07: Enviar Estimación por WhatsApp
+                    </span>
+                    <span className="text-[11px] text-[#6C7680] font-medium">
+                      Atención técnica directa
+                    </span>
                   </div>
 
-                  {/* Formulario opcional para registrar solicitud en backend */}
-                  <form onSubmit={handleSaveRequest} className="pt-3 border-t border-[#1c2220] space-y-3">
-                    <span className="text-xs font-medium text-[#9aa19d] block">
-                      O dejá tus datos para que un técnico te contacte:
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <p className="text-xs text-[#4A545E] leading-relaxed">
+                    Completá tus datos para enviar esta estimación técnica directamente al WhatsApp oficial del encargado de Luminadia (+54 9 383 427-2000).
+                  </p>
+
+                  <form onSubmit={handleSendWhatsAppConsultation} noValidate className="space-y-3.5">
+                    {/* Campo Nombre completo (Obligatorio, máx 30 caracteres) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="client-name" className="block text-xs font-medium text-[#1E242B]">
+                          Nombre completo o Empresa *
+                        </label>
+                        <span className={`text-[11px] tabular-nums font-medium ${30 - clientName.length === 0 ? 'text-amber-600 font-bold' : 'text-[#6C7680]'}`}>
+                          {30 - clientName.length} restantes
+                        </span>
+                      </div>
                       <input
+                        id="client-name"
                         type="text"
+                        maxLength={30}
                         value={clientName}
-                        onChange={(e) => setClientName(e.target.value)}
-                        placeholder="Tu nombre o empresa"
-                        className="w-full px-3 py-2 rounded-lg bg-[#0e1110] border border-[#2a322f] text-xs text-[#f4f3ef] focus:border-amber-500 focus:outline-none"
+                        onChange={(e) => {
+                          setClientName(e.target.value.slice(0, 30));
+                          if (formErrors.name) setFormErrors({ ...formErrors, name: undefined });
+                        }}
+                        placeholder="Ej. Martín Gómez"
+                        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9FA] text-xs text-[#1E242B] border focus:bg-white focus:outline-none transition-colors ${
+                          formErrors.name ? 'border-red-500 ring-1 ring-red-500' : 'border-[#B3B6B9] focus:border-[#1E242B]'
+                        }`}
                       />
+                      {formErrors.name && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1 font-medium">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{formErrors.name}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Campo Teléfono (Obligatorio, máx 10 dígitos) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="client-phone" className="block text-xs font-medium text-[#1E242B]">
+                          Teléfono celular / WhatsApp (10 dígitos) *
+                        </label>
+                        <span className={`text-[11px] tabular-nums font-medium ${10 - clientPhone.length === 0 ? 'text-emerald-700 font-bold' : 'text-[#6C7680]'}`}>
+                          {10 - clientPhone.length} restantes
+                        </span>
+                      </div>
                       <input
+                        id="client-phone"
                         type="tel"
+                        maxLength={10}
                         value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
-                        placeholder="Teléfono / WhatsApp"
-                        className="w-full px-3 py-2 rounded-lg bg-[#0e1110] border border-[#2a322f] text-xs text-[#f4f3ef] focus:border-amber-500 focus:outline-none"
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setClientPhone(digits);
+                          if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
+                        }}
+                        placeholder="Ej. 3834272000"
+                        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9FA] text-xs text-[#1E242B] border focus:bg-white focus:outline-none transition-colors ${
+                          formErrors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-[#B3B6B9] focus:border-[#1E242B]'
+                        }`}
+                      />
+                      <p className="mt-1 text-[11px] text-[#6C7680] leading-tight">
+                        Ej: <strong>3834272000</strong>. Ingresá código de área (característica) + número restante, sin el 0 ni el 15.
+                      </p>
+                      {formErrors.phone && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1 font-medium">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{formErrors.phone}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Campo Observaciones (Opcional, máx 250 caracteres) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="client-notes" className="block text-xs font-medium text-[#1E242B]">
+                          Observaciones o detalles adicionales (opcional)
+                        </label>
+                        <span className={`text-[11px] tabular-nums font-medium ${250 - clientNotes.length === 0 ? 'text-amber-600 font-bold' : 'text-[#6C7680]'}`}>
+                          {250 - clientNotes.length} restantes
+                        </span>
+                      </div>
+                      <textarea
+                        id="client-notes"
+                        maxLength={250}
+                        value={clientNotes}
+                        onChange={(e) => {
+                          setClientNotes(e.target.value.slice(0, 250));
+                          if (formErrors.notes) setFormErrors({ ...formErrors, notes: undefined });
+                        }}
+                        rows={2}
+                        placeholder="Ej. Necesito colocación en taller el sábado por la mañana..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9FA] text-xs text-[#1E242B] border border-[#B3B6B9] focus:border-[#1E242B] focus:bg-white focus:outline-none transition-colors"
                       />
                     </div>
-                    <textarea
-                      value={clientNotes}
-                      onChange={(e) => setClientNotes(e.target.value)}
-                      rows={2}
-                      placeholder="Observaciones adicionales sobre tu proyecto..."
-                      className="w-full px-3 py-2 rounded-lg bg-[#0e1110] border border-[#2a322f] text-xs text-[#f4f3ef] focus:border-amber-500 focus:outline-none"
-                    />
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-[#0e1110] font-bold text-xs uppercase tracking-wider transition-colors"
-                    >
-                      Registrar Consulta Técnica
-                    </button>
+
+                    <div className="pt-2 flex flex-col gap-2.5">
+                      <button
+                        type="submit"
+                        className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm transition-all shadow-md shadow-[#25D366]/20"
+                      >
+                        <WhatsAppIcon className="w-5 h-5 text-white" variant="white" />
+                        <span>Enviar Consulta por WhatsApp</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopySummary}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#F8F9FA] hover:bg-[#F1F3F5] text-xs font-semibold text-[#1E242B] transition-colors border border-[#B3B6B9]/40"
+                      >
+                        {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-[#1E242B]" />}
+                        <span>{copiedLink ? '¡Resumen copiado al portapapeles!' : 'Copiar Resumen de Estimación'}</span>
+                      </button>
+                    </div>
 
                     {savedSuccessMessage && (
-                      <p className="text-xs text-emerald-400 text-center font-medium pt-1">
-                        {savedSuccessMessage}
-                      </p>
+                      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 mt-2">
+                        <p className="text-xs font-semibold flex items-center gap-1.5 text-emerald-800">
+                          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{savedSuccessMessage}</span>
+                        </p>
+                        {waSentUrl && (
+                          <a
+                            href={waSentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 underline"
+                          >
+                            <span>Hacé clic aquí para abrir WhatsApp manualmente</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
                     )}
                   </form>
                 </div>

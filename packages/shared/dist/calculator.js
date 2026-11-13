@@ -245,7 +245,7 @@ exports.AUTOMOTIVE_PRESET_TEMPLATES = {
 /**
  * Genera el enlace y mensaje URL codificado para WhatsApp oficial de Luminadia (+54 9 383 427-2000)
  */
-function generateWhatsAppConsultationUrl(result, clientName, extraNotes) {
+function generateWhatsAppConsultationUrl(result, clientName, extraNotes, clientPhone) {
     const phone = '5493834272000';
     const categoryNames = {
         'automotriz': 'Automotriz',
@@ -266,6 +266,9 @@ function generateWhatsAppConsultationUrl(result, clientName, extraNotes) {
     ];
     if (clientName) {
         lines.push(`*Contacto:* ${clientName}`);
+    }
+    if (clientPhone) {
+        lines.push(`*Teléfono:* ${clientPhone}`);
     }
     if (extraNotes) {
         lines.push(`*Observaciones:* ${extraNotes}`);

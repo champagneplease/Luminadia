@@ -1,70 +1,78 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import DynamicSectionImage from '@/components/DynamicSectionImage';
+import ScrollReveal from '@/components/ScrollReveal';
+import LocationMap, { LocationLink } from '@/components/LocationMap';
+import TextReveal from '@/components/TextReveal';
 import {
   Car,
-  ShieldCheck,
-  ThermometerSnowflake,
-  EyeOff,
-  Sparkles,
-  ArrowRight,
   Calculator,
   Phone,
-  CheckCircle2,
   AlertTriangle,
+  Shield,
+  ExternalLink,
+  MapPin,
 } from 'lucide-react';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 
 export const metadata = {
-  title: 'Láminas de Control Solar Automotriz en Catamarca',
+  title: 'Láminas de Control Solar Automotriz y PPF en Catamarca',
   description:
-    'Instalación profesional de láminas de control solar y polarizados de alta tecnología para autos, pick-ups y utilitarios en San Fernando del Valle de Catamarca.',
+    'Instalación profesional de láminas American Tint · Surface Innovation (Window Films y PPF) para autos, pick-ups y utilitarios en San Fernando del Valle de Catamarca.',
 };
 
 export default function AutomotiveServicePage() {
   return (
-    <div className="bg-[#0e1110] text-[#f4f3ef] min-h-screen">
+    <div className="bg-white text-[#1E242B] min-h-[100dvh]">
       {/* Hero de servicio */}
-      <section className="relative py-20 lg:py-28 border-b border-[#2a322f] overflow-hidden">
+      <section className="relative py-24 lg:py-36 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#161a19] border border-[#2a322f] text-xs font-semibold text-amber-500">
-                <Car className="w-4 h-4" />
-                <span>División Automotriz · Luminadia Catamarca</span>
-              </div>
+              <LocationLink
+                showPin={false}
+                showExternalIcon={true}
+                className="animate-hero-location inline-flex items-center gap-2 text-sm font-semibold text-[#1E242B] hover:text-[#2E3742]"
+              >
+                <Car className="w-4 h-4 text-[#1E242B]" />
+                <span>División Automotriz · Taller en Padre Zanello 341</span>
+              </LocationLink>
 
-              <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#f4f3ef] leading-[1.1]">
-                Control solar de alta tecnología para tu vehículo.
+              <h1 className="animate-hero-title text-4xl sm:text-6xl lg:text-7xl font-black tracking-[-0.035em] text-[#1E242B] leading-[1.04] text-balance">
+                <TextReveal as="span" staggerMs={35}>
+                  Control solar y protección de alta tecnología para tu vehículo.
+                </TextReveal>
               </h1>
 
-              <p className="text-lg text-[#9aa19d] leading-relaxed">
-                Películas termoformables nano-cerámicas y de carbón diseñadas para combatir la radiación térmica extrema del verano catamarqueño. Bloqueo del 99% de rayos UV sin comprometer la visión nocturna.
+              <p className="animate-hero-subtitle text-lg text-[#4A545E] leading-relaxed max-w-2xl text-balance">
+                Línea oficial <strong>American Tint · Surface Innovation</strong> (Window Films nano-cerámicas y películas de protección de pintura <strong>PPF</strong>). Diseñadas para combatir la radiación térmica extrema del verano catamarqueño con bloqueo del 99% de rayos UV.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/calculadora-materiales"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-[#0e1110] font-bold text-sm transition-colors shadow-lg"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-[#1E242B] hover:bg-[#2E3742] text-white font-bold text-sm transition-colors"
                 >
-                  <Calculator className="w-4 h-4" />
+                  <Calculator className="w-4 h-4 text-white" />
                   <span>Calcular Materiales del Vehículo</span>
                 </Link>
 
                 <a
-                  href="https://wa.me/5493834272000?text=Hola%20Luminadia,%20deseo%20consultar%20por%20l%C3%A1minas%20para%20mi%20veh%C3%ADculo."
+                  href="https://wa.me/5493834272000?text=Hola%20Luminadia,%20deseo%20consultar%20por%20l%C3%A1minas%20American%20Tint%20para%20mi%20veh%C3%ADculo."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-[#161a19] hover:bg-[#1e2422] border border-[#2a322f] text-[#f4f3ef] font-semibold text-sm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-[#F8F9FA] hover:bg-[#F1F3F5] text-[#1E242B] font-semibold text-sm transition-colors"
                 >
-                  <Phone className="w-4 h-4 text-emerald-400" />
+                  <WhatsAppIcon className="w-4 h-4" variant="color" />
                   <span>Consultar Turno por WhatsApp</span>
                 </a>
               </div>
             </div>
 
-            <div className="lg:col-span-5 relative h-80 sm:h-96 rounded-2xl overflow-hidden border border-[#2a322f]">
-              <Image
-                src="/images/automotriz.jpg"
+            <div className="lg:col-span-5 relative h-80 sm:h-96 rounded-3xl overflow-hidden">
+              <DynamicSectionImage
+                section="automotriz"
+                fallbackSrc="/images/automotriz.jpg"
                 alt="Instalación de lámina automotriz en taller Luminadia"
                 fill
                 priority
@@ -77,113 +85,158 @@ export default function AutomotiveServicePage() {
       </section>
 
       {/* Características y cristales compatibles */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#2a322f]">
-        <div className="max-w-3xl mb-12 space-y-3">
-          <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mb-14 space-y-4">
+          <span className="text-sm font-semibold text-[#1E242B] block">
             Ingeniería de cristal
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#f4f3ef] tracking-tight">
-            Cristales tratados y compatibilidad técnica.
-          </h2>
-          <p className="text-[#9aa19d] text-base">
+          <ScrollReveal blur={true} durationMs={950}>
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#1E242B] tracking-[-0.03em] leading-[1.08] text-balance">
+              Cristales tratados y compatibilidad técnica.
+            </h2>
+          </ScrollReveal>
+          <p className="text-[#4A545E] text-base sm:text-lg leading-relaxed">
             Cada vidrio de un automóvil posee características ópticas y curvaturas particulares que exigen técnicas de termoformado específicas.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Parabrisas Térmico</h3>
-            <p className="text-sm text-[#9aa19d] leading-relaxed">
-              Instalamos láminas Nano Cerámicas de alta claridad (70% o más de transmisión de luz) que frenan el calor frontal que ingresa directamente al torpedo sin oscurecer la visibilidad reglamentaria.
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <h3 className="text-xl font-bold text-[#1E242B]">Parabrisas Térmico</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Láminas Nano Cerámicas American Tint de alta claridad (70% VLT) que frenan la radiación calórica frontal directa sin alterar la visión nocturna.
             </p>
-            <div className="text-xs text-amber-500 font-mono pt-2">
-              • Rechazo Infrarrojo: hasta 88%
+            <div className="text-xs text-[#1E242B] font-bold tabular-nums pt-2">
+              Rechazo Infrarrojo: hasta 88%
             </div>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Laterales y Ventiletes</h3>
-            <p className="text-sm text-[#9aa19d] leading-relaxed">
-              Disponibles en tonalidades intermedias (20%) y oscuras (05%). Reducen el resplandor lateral del sol, resguardan bolsos y pertenencias, y protegen la tapicería de la radiación UV.
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <h3 className="text-xl font-bold text-[#1E242B]">Laterales y Ventiletes</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Window Films American Tint en 20% y 05%. Reducen el resplandor lateral del sol, brindan privacidad y protegen el cuero y tapizados contra rayos UV.
             </p>
-            <div className="text-xs text-amber-500 font-mono pt-2">
-              • Privacidad y protección de cuero
+            <div className="text-xs text-[#1E242B] font-bold pt-2">
+              Privacidad y protección UV 99%
             </div>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Luneta Térmica</h3>
-            <p className="text-sm text-[#9aa19d] leading-relaxed">
-              Termoformado en una sola pieza continua sin cortes visibles, preservando las líneas resistivas del desempañador térmico original y la antena integrada de radio.
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <h3 className="text-xl font-bold text-[#1E242B]">Luneta Térmica</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Termoformado en una sola pieza continua sin cortes visibles, preservando las líneas resistivas del desempañador térmico y la antena de radio.
             </p>
-            <div className="text-xs text-amber-500 font-mono pt-2">
-              • Instalación en una sola pieza
+            <div className="text-xs text-[#1E242B] font-bold pt-2">
+              Instalación continua sin cortes
+            </div>
+          </div>
+
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-[#1E242B]" />
+              <h3 className="text-xl font-bold text-[#1E242B]">PPF (Pintura)</h3>
+            </div>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Paint Protection Film American Tint. Película de poliuretano autorregenerable contra impactos de gravilla, arena y rayones en ópticas y trompa.
+            </p>
+            <div className="text-xs text-[#1E242B] font-bold pt-2">
+              Blindaje transparente contra impactos
             </div>
           </div>
         </div>
 
         {/* Advertencia técnica de curvatura */}
-        <div className="mt-8 p-4 rounded-xl bg-[#161a19] border border-amber-500/30 text-xs text-[#9aa19d] flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="mt-8 p-6 rounded-2xl bg-[#F8F9FA] text-xs sm:text-sm text-[#4A545E] flex items-start gap-4">
+          <AlertTriangle className="w-5 h-5 text-[#1E242B] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong>Nota técnica de instalación:</strong> Los cristales curvos vehiculares requieren contracción térmica previa con calor antes de ser aplicados en el interior. Por este motivo, nuestra calculadora de materiales contempla una merma de bobina adecuada para garantizar sobrante de manipulación.
+            <strong className="text-[#1E242B]">Nota técnica de instalación:</strong> Los cristales curvos vehiculares requieren contracción térmica previa con calor antes de ser aplicados en el interior. Por este motivo, nuestra calculadora de materiales contempla una merma de bobina adecuada para garantizar sobrante de manipulación.
           </p>
         </div>
       </section>
 
       {/* Tonalidades disponibles */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#2a322f]">
-        <div className="max-w-3xl mb-12 space-y-3">
-          <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">
-            Tonalidades y VLT
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mb-14 space-y-4">
+          <span className="text-sm font-semibold text-[#1E242B] block">
+            Tonalidades y Transmisión de Luz
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#f4f3ef] tracking-tight">
-            Transmisión de luz y privacidad a tu medida.
-          </h2>
+          <ScrollReveal blur={true} durationMs={950}>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-[#1E242B] tracking-[-0.03em] leading-[1.08] text-balance">
+              Transmisión de luz y privacidad a tu medida.
+            </h2>
+          </ScrollReveal>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <span className="text-2xl font-bold text-amber-500 font-mono">70% VLT</span>
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Tono Claro Óptico</h3>
-            <p className="text-sm text-[#9aa19d]">
-              Imperceptible a la vista. Diseñado exclusivamente para el rechazo calórico y filtro UV sin perder un ápice de luz natural ni visibilidad nocturna.
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <span className="text-3xl font-black text-[#1E242B] tabular-nums block">70% VLT</span>
+            <h3 className="text-lg font-bold text-[#1E242B]">Tono Claro Óptico</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Imperceptible a la vista. Diseñado exclusivamente para el rechazo calórico y filtro UV sin perder luz natural ni visibilidad nocturna.
             </p>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <span className="text-2xl font-bold text-amber-500 font-mono">20% VLT</span>
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Tono Intermedio</h3>
-            <p className="text-sm text-[#9aa19d]">
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <span className="text-3xl font-black text-[#1E242B] tabular-nums block">20% VLT</span>
+            <h3 className="text-lg font-bold text-[#1E242B]">Tono Intermedio</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
               La elección más equilibrada para laterales de autos. Confort visual ante el sol intenso de Catamarca y excelente definición de los retrovisores en la noche.
             </p>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#161a19] border border-[#2a322f] space-y-3">
-            <span className="text-2xl font-bold text-amber-500 font-mono">05% VLT</span>
-            <h3 className="text-lg font-bold text-[#f4f3ef]">Tono Oscuro</h3>
-            <p className="text-sm text-[#9aa19d]">
+          <div className="card-hover-effect p-8 rounded-3xl bg-white space-y-3">
+            <span className="text-3xl font-black text-[#1E242B] tabular-nums block">05% VLT</span>
+            <h3 className="text-lg font-bold text-[#1E242B]">Tono Oscuro</h3>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
               Máxima privacidad para pasajeros traseros y baúl. Evita que se distingan objetos en el habitáculo desde el exterior.
             </p>
           </div>
         </div>
       </section>
 
+      {/* Ubicación y Turnos en Taller */}
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-5 space-y-4">
+            <span className="text-xs font-bold text-[#1E242B] block">
+              Instalación Presencial en Catamarca
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#1E242B] tracking-[-0.025em]">
+              Turnos en nuestro taller de Padre Zanello 341.
+            </h2>
+            <p className="text-sm text-[#4A545E] leading-relaxed">
+              Las colocaciones automotrices de Window Films y PPF se realizan en ambiente cerrado libre de polvo para garantizar una adhesión libre de impurezas. Turnos en el día previa reserva.
+            </p>
+            <div className="pt-2">
+              <LocationLink className="text-sm font-bold text-[#1E242B] underline-offset-4">
+                Padre Zanello 341, Catamarca
+              </LocationLink>
+            </div>
+          </div>
+          <div className="lg:col-span-7">
+            <LocationMap variant="card" height="h-60 sm:h-72" />
+          </div>
+        </div>
+      </section>
+
       {/* Llamado a la calculadora adaptada */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#f4f3ef] tracking-tight">
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div data-ui="true" className="p-10 sm:p-14 rounded-3xl bg-[#1E242B] text-white space-y-6 max-w-3xl mx-auto">
+          <h2
+            style={{ color: '#FFFFFF' }}
+            className="text-3xl sm:text-5xl font-extrabold !text-white text-white tracking-[-0.03em] leading-[1.08] text-balance block"
+          >
             ¿Querés estimar el material para tu vehículo?
           </h2>
-          <p className="text-[#9aa19d] text-base">
+          <p className="text-base text-[#B3B6B9] font-normal leading-relaxed">
             Utilizá nuestra calculadora seleccionando tu tipo de carrocería (sedán, hatchback, SUV o camioneta) para conocer los metros de bobina necesarios.
           </p>
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/calculadora-materiales"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-[#0e1110] font-bold text-sm transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-neutral-100 text-[#1E242B] font-bold text-sm transition-colors"
             >
-              <Calculator className="w-4 h-4" />
+              <Calculator className="w-4 h-4 text-[#1E242B]" />
               <span>Abrir Calculadora Automotriz</span>
             </Link>
           </div>

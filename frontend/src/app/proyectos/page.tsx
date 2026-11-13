@@ -3,49 +3,14 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Layers, MapPin, Calculator, ArrowRight } from 'lucide-react';
+import ScrollReveal from '@/components/ScrollReveal';
+import TextReveal from '@/components/TextReveal';
+import { Layers, MapPin, Calculator, Play } from 'lucide-react';
+import { useSiteConfig } from '@/context/SiteConfigContext';
 
 export default function ProjectsGalleryPage() {
   const [filter, setFilter] = useState<'todos' | 'automotriz' | 'hogares' | 'comercios'>('todos');
-
-  const projects = [
-    {
-      id: 'p1',
-      title: 'Pick-Up Toyota Hilux — Blindaje Térmico Completo',
-      category: 'automotriz',
-      film: 'Nano Cerámica Carbón 20 + Parabrisas Cerámica 70',
-      location: 'Valle Central, Catamarca',
-      image: '/images/automotriz.jpg',
-      description: 'Instalación completa de control solar térmico para uso en zonas mineras y rurales con alta exposición solar. Termoformado de luneta en una sola pieza.',
-    },
-    {
-      id: 'p2',
-      title: 'Residencia en Falda de la Montaña — Ventanales Oeste',
-      category: 'hogares',
-      film: 'Nano Cerámica 70 & Dual Reflectiva 15',
-      location: 'San Fernando del Valle de Catamarca',
-      image: '/images/hogares.jpg',
-      description: 'Tratamiento de 48 m² de ventanales con vista a las sierras. Reducción de 8°C en el interior de la sala principal en horario de verano.',
-    },
-    {
-      id: 'p3',
-      title: 'Showroom Comercial & Oficinas en Centro',
-      category: 'comercios',
-      film: 'Nano Cerámica Térmica 70 (Clara)',
-      location: 'Centro Comercial, Catamarca',
-      image: '/images/comercios.jpg',
-      description: 'Protección integral de vidrieras de indumentaria contra rayos UV evitando decoloración de prendas y resplandor sobre puestos de trabajo.',
-    },
-    {
-      id: 'p4',
-      title: 'Sedán Volkswagen Vento — Confort Acústico y Térmico',
-      category: 'automotriz',
-      film: 'Nano Cerámica 20 en laterales y luneta',
-      location: 'Padre Zanello 341, Catamarca',
-      image: '/images/hero.jpg',
-      description: 'Aplicación de tono grafito intermedio de alta nitidez para conductor y acompañantes sin interferencia en telepeaje ni señal satelital.',
-    },
-  ];
+  const { projects } = useSiteConfig();
 
   const filteredProjects = projects.filter((p) => {
     if (filter === 'todos') return true;
@@ -53,24 +18,27 @@ export default function ProjectsGalleryPage() {
   });
 
   return (
-    <div className="bg-[#0e1110] text-[#f4f3ef] min-h-screen py-16 sm:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <div className="bg-white text-[#1E242B] min-h-[100dvh] py-20 sm:py-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         {/* Cabecera */}
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#161a19] border border-[#2a322f] text-xs font-semibold text-amber-500">
-            <Layers className="w-4 h-4" />
-            <span>Trabajos Realizados</span>
+        <div className="max-w-3xl space-y-6">
+          <div className="animate-hero-location flex items-center gap-2 text-sm font-semibold text-[#1E242B]">
+            <Layers className="w-4 h-4 text-[#1E242B]" />
+            <span>Trabajos Realizados · Casos en Catamarca</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#f4f3ef] leading-[1.1]">
+          <TextReveal
+            as="h1"
+            className="animate-hero-title text-4xl sm:text-6xl lg:text-7xl font-black tracking-[-0.035em] text-[#1E242B] leading-[1.04] text-balance"
+          >
             Galería de proyectos en Catamarca.
-          </h1>
-          <p className="text-base sm:text-lg text-[#9aa19d] leading-relaxed">
-            Una selección de instalaciones realizadas en vehículos particulares, residencias y locales comerciales de la provincia.
+          </TextReveal>
+          <p className="animate-hero-subtitle text-base sm:text-lg text-[#4A545E] leading-relaxed max-w-2xl text-balance">
+            Una selección de instalaciones realizadas en vehículos particulares, residencias y locales comerciales de la provincia. Demostración en fotos y videos en movimiento.
           </p>
         </div>
 
-        {/* Filtros por categoría */}
-        <div className="flex flex-wrap gap-2.5 border-b border-[#2a322f] pb-4">
+        {/* Filtros por categoría en botones planos */}
+        <div className="flex flex-wrap gap-3 pb-2">
           {[
             { id: 'todos', label: 'Todos los proyectos' },
             { id: 'automotriz', label: 'Automotores' },
@@ -83,10 +51,10 @@ export default function ProjectsGalleryPage() {
                 key={f.id}
                 type="button"
                 onClick={() => setFilter(f.id as any)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
                   isSel
-                    ? 'bg-amber-600 text-[#0e1110] font-bold'
-                    : 'bg-[#161a19] text-[#9aa19d] border border-[#2a322f] hover:text-[#f4f3ef]'
+                    ? 'bg-[#1E242B] text-white'
+                    : 'bg-[#F8F9FA] text-[#4A545E] hover:text-[#1E242B] hover:bg-[#F1F3F5]'
                 }`}
               >
                 {f.label}
@@ -95,62 +63,88 @@ export default function ProjectsGalleryPage() {
           })}
         </div>
 
-        {/* Grid de proyectos */}
+        {/* Grid de proyectos en tarjetas limpias */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredProjects.map((proj) => (
-            <div
-              key={proj.id}
-              className="rounded-2xl bg-[#161a19] border border-[#2a322f] overflow-hidden flex flex-col justify-between group hover:border-amber-500/40 transition-colors"
-            >
-              <div className="relative h-72 w-full overflow-hidden">
-                <Image
-                  src={proj.image}
-                  alt={proj.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                <div className="absolute top-4 left-4 px-3 py-1 rounded bg-[#0e1110]/80 border border-[#2a322f] text-xs font-medium text-amber-400 capitalize">
-                  {proj.category}
-                </div>
-              </div>
+          {filteredProjects.map((proj, idx) => {
+            const isVideo = proj.videoUrl || /\.(mp4|webm|mov|ogg)$/i.test(proj.image);
+            const mediaSrc = proj.videoUrl || proj.image;
 
-              <div className="p-6 sm:p-8 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs text-[#9aa19d]">
-                    <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            return (
+              <div
+                key={`proj-${proj.id || idx}-${idx}`}
+                className="card-hover-effect rounded-3xl bg-white overflow-hidden flex flex-col justify-between group"
+              >
+                <div className="relative h-72 sm:h-80 w-full overflow-hidden bg-[#1E242B]">
+                  {isVideo ? (
+                    <video
+                      src={mediaSrc}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    />
+                  ) : (
+                    <Image
+                      src={proj.image || `/images/${proj.category === 'hogares' ? 'hogares' : proj.category === 'comercios' ? 'comercios' : 'automotriz'}.jpg`}
+                      alt={proj.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  )}
+                  <div className="absolute top-4 left-4 px-3 py-1 rounded bg-[#1E242B] text-xs font-semibold text-white capitalize">
+                    {proj.category}
+                  </div>
+                  {isVideo && (
+                    <div className="absolute top-4 right-4 px-2.5 py-1 rounded-md bg-[#1E242B]/90 text-white text-[11px] font-semibold flex items-center gap-1.5">
+                      <Play className="w-3 h-3 fill-white text-white" />
+                      <span>Video</span>
+                    </div>
+                  )}
+                </div>
+
+              <div className="p-8 space-y-4 flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5 text-xs text-[#4A545E]">
+                    <MapPin className="w-3.5 h-3.5 text-[#1E242B] shrink-0" />
                     <span>{proj.location}</span>
                   </div>
-                  <h2 className="text-xl font-bold text-[#f4f3ef]">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#1E242B]">
                     {proj.title}
                   </h2>
-                  <p className="text-sm text-[#9aa19d] leading-relaxed">
+                  <p className="text-sm text-[#4A545E] leading-relaxed">
                     {proj.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#1c2220] text-xs text-[#636b67]">
-                  <strong className="text-[#9aa19d]">Material:</strong> {proj.film}
+                <div className="pt-4 text-xs text-[#6C7680]">
+                  <strong className="text-[#1E242B]">Material:</strong> {proj.film}
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
 
-        {/* CTA */}
-        <div className="p-8 sm:p-12 rounded-2xl bg-[#161a19] border border-[#2a322f] text-center space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#f4f3ef]">
+        {/* CTA final en bloque arquitectónico de pizarra oscura */}
+        <div data-ui="true" className="p-10 sm:p-14 rounded-3xl bg-[#1E242B] text-white text-center space-y-6">
+          <h2
+            style={{ color: '#FFFFFF' }}
+            className="text-3xl sm:text-5xl font-extrabold !text-white text-white tracking-[-0.03em] leading-[1.08] text-balance block"
+          >
             ¿Tenés un proyecto similar en mente?
           </h2>
-          <p className="text-sm text-[#9aa19d] max-w-lg mx-auto">
+          <p className="text-sm sm:text-base text-[#B3B6B9] max-w-lg mx-auto font-normal">
             Estimá el consumo de material necesario ingresando las medidas en nuestra calculadora técnica.
           </p>
           <div className="pt-2 flex justify-center">
             <Link
               href="/calculadora-materiales"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-[#0e1110] font-bold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-neutral-100 text-[#1E242B] font-bold text-sm transition-colors"
             >
-              <Calculator className="w-4 h-4" />
+              <Calculator className="w-4 h-4 text-[#1E242B]" />
               <span>Calcular Materiales</span>
             </Link>
           </div>

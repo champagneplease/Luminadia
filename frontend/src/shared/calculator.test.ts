@@ -102,7 +102,7 @@ describe('Calculator Core Engine Tests', () => {
 
     assert.ok(url.startsWith('https://wa.me/5493834272000?text='));
     const decoded = decodeURIComponent(url);
-    assert.ok(decoded.includes('CONSULTA DE MATERIALES — LUMINADIA'));
+    assert.ok(decoded.includes('CONSULTA DE MATERIALES · LUMINADIA'));
     assert.ok(decoded.includes('Juan Pérez'));
     assert.ok(decoded.includes('Vidriera Local') || decoded.includes('Comercios'));
     assert.ok(decoded.includes('7.2 m²'));

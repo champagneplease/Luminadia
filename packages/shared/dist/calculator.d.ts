@@ -23,5 +23,5 @@ export declare const AUTOMOTIVE_PRESET_TEMPLATES: Record<string, AutomotiveTempl
 /**
  * Genera el enlace y mensaje URL codificado para WhatsApp oficial de Luminadia (+54 9 383 427-2000)
  */
-export declare function generateWhatsAppConsultationUrl(result: RollEstimationResult, clientName?: string, extraNotes?: string): string;
+export declare function generateWhatsAppConsultationUrl(result: RollEstimationResult, clientName?: string, extraNotes?: string, clientPhone?: string): string;
 //# sourceMappingURL=calculator.d.ts.map

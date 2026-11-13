@@ -1,8 +1,13 @@
 import type { Metadata } from 'next';
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import InitialPreloader from '@/components/InitialPreloader';
+import PageTransition from '@/components/PageTransition';
+import { SiteConfigProvider } from '@/context/SiteConfigContext';
+import { VisualEditorProvider } from '@/context/VisualEditorContext';
+import VisualEditorToolbar from '@/components/visual-editor/VisualEditorToolbar';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -11,16 +16,9 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
   title: {
-    default: 'Luminadia — Láminas de Control Solar con Alta Tecnología en Catamarca',
+    default: 'Luminadia · Láminas de Control Solar con Alta Tecnología en Catamarca',
     template: '%s | Luminadia Catamarca',
   },
   description:
@@ -38,14 +36,31 @@ export const metadata: Metadata = {
   authors: [{ name: 'Luminadia' }],
   creator: 'Luminadia',
   metadataBase: new URL('https://luminadia.com.ar'),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/images/luminadia-logo.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/images/luminadia-logo.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     type: 'website',
     locale: 'es_AR',
     url: 'https://luminadia.com.ar',
-    title: 'Luminadia — Láminas de Control Solar con Alta Tecnología',
+    title: 'Luminadia · Láminas de Control Solar con Alta Tecnología',
     description:
       'Soluciones en láminas de control solar para automotores, residencias y comercios en Catamarca. Calculá los materiales necesarios para tu proyecto.',
     siteName: 'Luminadia',
+    images: [
+      {
+        url: '/images/luminadia-logo.png',
+        width: 1024,
+        height: 1024,
+        alt: 'Luminadia · Láminas de Control Solar',
+      },
+    ],
   },
   alternates: {
     canonical: 'https://luminadia.com.ar',
@@ -86,29 +101,41 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="es-AR" className={`${jakarta.variable} ${inter.variable}`}>
+    <html lang="es-AR" className={jakarta.variable}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#0e1110] text-[#f4f3ef] font-sans antialiased selection:bg-amber-600 selection:text-black">
-        {/* Skip Link para accesibilidad */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-amber-600 text-black font-bold rounded-lg focus:outline-none"
-        >
-          Saltar al contenido principal
-        </a>
+      <body className="min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col bg-white text-[#1E242B] font-sans antialiased selection:bg-[#1E242B] selection:text-white">
+        <SiteConfigProvider>
+          <VisualEditorProvider>
+            {/* Barra flotante administrativa cuando el editor visual está activo */}
+            <VisualEditorToolbar />
 
-        <Navbar />
+            {/* Preloader de arranque suave e instantáneo */}
+            <InitialPreloader />
 
-        <main id="main-content" className="flex-1 pt-20">
-          {children}
-        </main>
+            {/* Skip Link para accesibilidad */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-[#1E242B] text-white font-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B3B6B9]"
+            >
+              Saltar al contenido principal
+            </a>
 
-        <Footer />
+            <Navbar />
+
+            <main id="main-content" className="flex-1 pt-20 w-full max-w-full overflow-x-hidden">
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </main>
+
+            <Footer />
+          </VisualEditorProvider>
+        </SiteConfigProvider>
       </body>
     </html>
   );

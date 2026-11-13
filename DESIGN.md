@@ -18,24 +18,22 @@ Inspirado en la dirección **`dark-room`** del estudio de diseño Taste Skill v2
 
 ---
 
-## 2. Paleta de Colores
+## 2. Paleta de Colores Corporativa Oficial
 
-La paleta se fundamenta en tonos minerales y metálicos de control solar con un acento cálido que representa el espectro solar filtrado con precisión:
+La identidad visual adopta una paleta sobria, luminosa y refinada:
 
 | Rol | Token CSS | Hex / Valor | Uso |
 | :--- | :--- | :--- | :--- |
-| **Ground (Fondo Principal)** | `--color-ground` | `#0e1110` | Fondo general de la plataforma. Grafito profundo con subtono carbón. |
-| **Surface (Superficie 1)** | `--color-surface` | `#161a19` | Paneles, cards contenidas y barras de navegación. |
-| **Surface Elevada** | `--color-surface-elevated` | `#1e2422` | Modales, popovers y selectores interactivos. |
-| **Borde / Separación** | `--color-border` | `#2a322f` | Separadores estructurales de bajo contraste y alto refinamiento. |
-| **Ink (Texto Principal)** | `--color-ink` | `#f4f3ef` | Tipografía principal (blanco cálido). Ratio de contraste > 11:1. |
-| **Ink Muted (Secundario)** | `--color-ink-muted` | `#9aa19d` | Descripciones, unidades de medida y notas técnicas. Ratio > 5.5:1. |
-| **Accent (Acento Solar)** | `--color-accent` | `#d97706` / `#e29b38` | Acento ámbar solar de alta tecnología. Exclusivo para CTA primario y estado activo. |
-| **Accent Hover** | `--color-accent-hover` | `#b45309` | Estado presionado/hover del acento. |
-| **Accent Text / Ink** | `--color-accent-ink` | `#0e1110` | Texto sobre botón de acento (máximo contraste WCAG AAA). |
-| **Success** | `--color-success` | `#22c55e` | Confirmación de cálculo e inputs válidos. |
-| **Warning** | `--color-warning` | `#f59e0b` | Avisos técnicos sobre curvas de cristales y márgenes de rollo. |
-| **Danger** | `--color-danger` | `#ef4444` | Errores de validación de medidas. |
+| **Fondo Principal** | `--color-ground` | `#F4EBE3` | Tono beige cálido / crema para el fondo general (`body`) y secciones principales, aportando claridad y calidez arquitectónica. |
+| **Color Primario** | `--color-primary` | `#1E242B` | Azul pizarra oscuro para textos principales, encabezados (H1, H2, H3), barra de navegación (Navbar) y fondo de botones principales (CTA). |
+| **Color de Acento** | `--color-accent` | `#B3B6B9` | Gris claro para detalles secundarios: bordes de tarjetas, líneas divisorias, separadores y estados inactivos/hover. |
+| **Superficie de Tarjetas** | `--color-surface` | `#FFFFFF` | Fondos de tarjetas, paneles y campos de entrada sobre el fondo beige crema. |
+| **Superficie Elevada** | `--color-surface-elevated` | `#FAF6F2` | Paneles secundarios, popovers y modales. |
+| **Texto Secundario** | `--color-ink-muted` | `#5A6573` | Subtítulos, notas técnicas y metadatos con contraste accesible sobre crema y blanco. |
+| **Texto sobre Primario** | `--color-primary-ink` | `#F4EBE3` | Texto crema de alto contraste para el interior de botones principales y Navbar. |
+| **Success** | `--color-success` | `#15803d` | Confirmaciones y validaciones positivas. |
+| **Warning** | `--color-warning` | `#b45309` | Avisos técnicos sobre curvas de cristales. |
+| **Danger** | `--color-danger` | `#b91c1c` | Errores de validación de medidas. |
 
 ---
 

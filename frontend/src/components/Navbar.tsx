@@ -187,26 +187,26 @@ export default function Navbar() {
               ref={toggleButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="mobile-nav-toggle relative w-10 h-10 rounded-lg flex flex-col items-center justify-center gap-1.5 text-[#B3B6B9] hover:text-white hover:bg-[#283039]/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+              className="mobile-nav-toggle relative w-10 h-10 rounded-lg flex flex-col items-center justify-center gap-1.5 text-[#B3B6B9] hover:text-white hover:bg-[#283039]/80 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
             >
               <span
                 aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
+                className={`w-5 h-[2px] rounded-full transition-[transform,background-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
                   mobileMenuOpen ? 'translate-y-[8px] rotate-45 bg-white' : 'bg-current'
                 }`}
               />
               <span
                 aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-all duration-200 ease-out origin-center ${
+                className={`w-5 h-[2px] rounded-full transition-[transform,opacity] duration-150 ease-out origin-center ${
                   mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 bg-current'
                 }`}
               />
               <span
                 aria-hidden="true"
-                className={`w-5 h-[2px] rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
+                className={`w-5 h-[2px] rounded-full transition-[transform,background-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center ${
                   mobileMenuOpen ? '-translate-y-[8px] -rotate-45 bg-white' : 'bg-current'
                 }`}
               />
@@ -215,50 +215,45 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer with smooth unfolding transition & staggered item reveal */}
+      {/* Mobile Drawer with GPU-composited unfolding & snappy staggered item reveal */}
       <div
         id="mobile-navigation"
+        data-open={mobileMenuOpen}
         inert={!mobileMenuOpen}
-        className={`lg:hidden overflow-hidden transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] border-b ${
-          mobileMenuOpen
-            ? 'max-h-[520px] opacity-100 border-white/10 bg-[#1E242B]/95 backdrop-blur-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)]'
-            : 'max-h-0 opacity-0 border-transparent bg-transparent pointer-events-none'
+        className={`mobile-drawer lg:hidden absolute top-full inset-x-0 border-b border-white/10 bg-[#1E242B]/[0.97] backdrop-blur-md shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)] ${
+          mobileMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
       >
-        <div className="px-4 sm:px-6 py-5 space-y-4">
+        <div className="px-4 sm:px-6 py-5 space-y-4 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
           <nav className="flex flex-col space-y-1 text-sm" aria-label="Navegación móvil">
             {navLinks.map((link, index) => {
               const isActive = isRouteActive(link.href);
               return (
-                <Link
+                <div
                   key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  aria-current={isActive ? 'page' : undefined}
-                  style={{
-                    transitionDelay: mobileMenuOpen ? `${index * 35}ms` : '0ms',
-                    transform: mobileMenuOpen ? 'translateY(0)' : 'translateY(-6px)',
-                    opacity: mobileMenuOpen ? 1 : 0,
-                  }}
-                  className={`py-2.5 px-3 rounded-lg text-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center ${
-                    isActive
-                      ? 'text-white font-semibold border-l-2 border-white bg-[#283039]/80 pl-3.5'
-                      : 'text-[#B3B6B9] hover:text-white hover:bg-[#283039]/40'
-                  }`}
+                  style={{ '--stagger-delay': `${index * 22}ms` } as React.CSSProperties}
+                  className="mobile-drawer-item"
                 >
-                  <span>{link.label}</span>
-                </Link>
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`py-2.5 px-3 rounded-lg text-sm transition-colors duration-150 flex items-center ${
+                      isActive
+                        ? 'text-white font-semibold border-l-2 border-white bg-[#283039]/80 pl-3.5'
+                        : 'text-[#B3B6B9] hover:text-white hover:bg-[#283039]/40'
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                  </Link>
+                </div>
               );
             })}
           </nav>
 
           <div
-            style={{
-              transitionDelay: mobileMenuOpen ? `${navLinks.length * 35}ms` : '0ms',
-              transform: mobileMenuOpen ? 'translateY(0)' : 'translateY(-6px)',
-              opacity: mobileMenuOpen ? 1 : 0,
-            }}
-            className="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#B3B6B9] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{ '--stagger-delay': `${navLinks.length * 22}ms` } as React.CSSProperties}
+            className="mobile-drawer-item pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#B3B6B9]"
           >
             <div className="flex items-center gap-3 sm:gap-4">
               <a

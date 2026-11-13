@@ -352,3 +352,55 @@ body.has-visual-editor-bar main#main-content {
   transform: none;
 }
 
+.mobile-drawer {
+  clip-path: inset(0 0 100% 0);
+  transform: translate3d(0, -10px, 0);
+  opacity: 0;
+  will-change: clip-path, transform, opacity;
+  transition:
+    clip-path 0.2s var(--ease-smooth),
+    transform 0.2s var(--ease-smooth),
+    opacity 0.16s ease-out;
+}
+
+.mobile-drawer[data-open="true"] {
+  clip-path: inset(0 0 0% 0);
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  transition:
+    clip-path 0.28s var(--ease-luxury),
+    transform 0.28s var(--ease-luxury),
+    opacity 0.2s ease-out;
+}
+
+.mobile-drawer-item {
+  opacity: 0;
+  transform: translate3d(0, -6px, 0);
+  will-change: transform, opacity;
+  transition:
+    transform 0.14s ease-out,
+    opacity 0.12s ease-out;
+  transition-delay: 0ms;
+}
+
+.mobile-drawer[data-open="true"] .mobile-drawer-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.26s var(--ease-luxury),
+    opacity 0.22s ease-out;
+  transition-delay: var(--stagger-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer,
+  .mobile-drawer[data-open="true"],
+  .mobile-drawer-item,
+  .mobile-drawer[data-open="true"] .mobile-drawer-item {
+    clip-path: none !important;
+    transform: none !important;
+    transition-duration: 0.1s !important;
+    transition-delay: 0ms !important;
+  }
+}
+
